@@ -18,6 +18,8 @@ public class GameSystem : MonoBehaviour
     }
     #endregion
 
+
+
     public void Awake()
     {
 

@@ -31,3 +31,10 @@ Assets/-tk2d.asset
 Assets/SpriteCollection/Logo/Thumbs.db.meta
 
 Assets/_ThirdParty/RageSpline/Gizmos/Thumbs.db.meta
+
+# Java #
+*.jar
+*.war
+*.ear
+*.class
+.metadata/

@@ -1,0 +1,601 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+SceneSettings:
+  m_ObjectHideFlags: 0
+  m_PVSData: 
+  m_QueryMode: 1
+  m_PVSObjectsArray: []
+  m_PVSPortalsArray: []
+  m_OcclusionBakeSettings:
+    viewCellSize: 1
+    bakeMode: 2
+    memoryUsage: 10485760
+--- !u!104 &2
+RenderSettings:
+  m_Fog: 0
+  m_FogColor: {r: .5, g: .5, b: .5, a: 1}
+  m_FogMode: 3
+  m_FogDensity: .00999999978
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientLight: {r: .200000003, g: .200000003, b: .200000003, a: 1}
+  m_SkyboxMaterial: {fileID: 0}
+  m_HaloStrength: .5
+  m_FlareStrength: 1
+  m_HaloTexture: {fileID: 0}
+  m_SpotCookie: {fileID: 0}
+  m_ObjectHideFlags: 0
+--- !u!127 &3
+LevelGameManager:
+  m_ObjectHideFlags: 0
+--- !u!157 &4
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  m_LightProbes: {fileID: 0}
+  m_Lightmaps: []
+  m_LightmapsMode: 1
+  m_BakedColorSpace: 0
+  m_UseDualLightmapsInForward: 0
+  m_LightmapEditorSettings:
+    m_Resolution: 50
+    m_LastUsedResolution: 0
+    m_TextureWidth: 1024
+    m_TextureHeight: 1024
+    m_BounceBoost: 1
+    m_BounceIntensity: 1
+    m_SkyLightColor: {r: .860000014, g: .930000007, b: 1, a: 1}
+    m_SkyLightIntensity: 0
+    m_Quality: 0
+    m_Bounces: 1
+    m_FinalGatherRays: 1000
+    m_FinalGatherContrastThreshold: .0500000007
+    m_FinalGatherGradientThreshold: 0
+    m_FinalGatherInterpolationPoints: 15
+    m_AOAmount: 0
+    m_AOMaxDistance: .100000001
+    m_AOContrast: 1
+    m_LODSurfaceMappingDistance: 1
+    m_Padding: 0
+    m_TextureCompression: 0
+    m_LockAtlas: 0
+--- !u!196 &5
+NavMeshSettings:
+  m_ObjectHideFlags: 0
+  m_BuildSettings:
+    agentRadius: .5
+    agentHeight: 2
+    agentSlope: 45
+    agentClimb: .400000006
+    ledgeDropHeight: 0
+    maxJumpAcrossDistance: 0
+    accuratePlacement: 0
+    minRegionArea: 2
+    widthInaccuracy: 16.666666
+    heightInaccuracy: 10
+  m_NavMesh: {fileID: 0}
+--- !u!1 &1238109908
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 1238109913}
+  - 20: {fileID: 1238109912}
+  - 92: {fileID: 1238109911}
+  - 124: {fileID: 1238109910}
+  - 81: {fileID: 1238109909}
+  - 114: {fileID: 1238109937}
+  - 114: {fileID: 1238109936}
+  - 114: {fileID: 1238109935}
+  - 114: {fileID: 1238109934}
+  - 114: {fileID: 1238109933}
+  - 114: {fileID: 1238109932}
+  - 114: {fileID: 1238109931}
+  - 114: {fileID: 1238109930}
+  - 114: {fileID: 1238109929}
+  - 114: {fileID: 1238109928}
+  - 114: {fileID: 1238109918}
+  - 114: {fileID: 1238109917}
+  - 114: {fileID: 1238109916}
+  - 114: {fileID: 1238109950}
+  - 114: {fileID: 1238109949}
+  - 114: {fileID: 1238109948}
+  - 114: {fileID: 1238109947}
+  - 114: {fileID: 1238109946}
+  - 114: {fileID: 1238109945}
+  - 114: {fileID: 1238109944}
+  - 114: {fileID: 1238109943}
+  - 114: {fileID: 1238109942}
+  - 114: {fileID: 1238109941}
+  - 114: {fileID: 1238109940}
+  - 114: {fileID: 1238109939}
+  - 114: {fileID: 1238109938}
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: MainCamera
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!81 &1238109909
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 1
+--- !u!124 &1238109910
+Behaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 1
+--- !u!92 &1238109911
+Behaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 1
+--- !u!20 &1238109912
+Camera:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: .192156866, g: .301960796, b: .474509805, a: .0196078438}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: .300000012
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 100
+  m_Depth: -1
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_HDR: 0
+--- !u!4 &1238109913
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+--- !u!114 &1238109916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d13823fbdb738043a74c02905ad27dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+  box: 
+--- !u!114 &1238109917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc115dc6ab2b3042bf095e0bbeb065d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userScore: 1000
+  Score1: 2000
+  max: 2
+  offSet: 1
+  success: 
+--- !u!114 &1238109918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07b346db64d09e94ca1a882ac44c0816, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+  box: 
+--- !u!114 &1238109928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73bcb5ca58e184945889f559a8f53b8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userName: <Name of the user>
+  status: <Status that has to update on wall>
+  appId: <facebook_app_id>
+  appSecret: <facebook_app_secret>
+  fbAccessToken: <facebook_access_token>
+  consumerKey: <twitter_consumer_key>
+  consumerSecret: <twitter_consumer_secret>
+  accessToken: <twitter_access_token>
+  accessTokenSecret: <twitter_access_token_secret>
+  linkedinApiKey: <linkedin_api_key>
+  linkedinSecretKey: <linkedin_secret_key>
+  linkedinAccessToken: <linkedin_access_token>
+  linkedinAccessTokenSecret: <linkedin_access_token_secret>
+  success: 
+--- !u!114 &1238109929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1bb928a8a343aa4cb5427a73926e23b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rewardDescription: REWARD DESCRIPTION
+  rewardPoints: 10000
+  rewardPoints1: 2000
+  max: 2
+  offSet: 1
+  success: 
+  box: 
+--- !u!114 &1238109930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fee1d6a8e9f235941ba288f0ea8dceee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collectionName: NewCollection
+  max: 2
+  offSet: 1
+  success: 
+  box: 
+--- !u!114 &1238109931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c49a21746ddd41c4cbb7dbbb1bb4e48b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  password: password
+  max: 2
+  offSet: 1
+  success: 
+  box: 
+--- !u!114 &1238109932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d45bf993a79e4c944910680367f9eb8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+--- !u!114 &1238109933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4d28842eb9795b488010219b114dab4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+--- !u!114 &1238109934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9249de124c87ca840b9762addfd51cf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sessionId: 
+  success: 
+--- !u!114 &1238109935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17c9eb113426ed7499931197ee440b56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userName: Paul
+  buddyName: Nick
+  buddyName1: Aks
+  buddyName2: Juno
+  message: Hi I Am Using App42 BuddyService
+  groupName: App42BuddyGroup
+  ownerName: Paul
+  maxDistance: 1000
+  success: 
+--- !u!114 &1238109936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ead70d05e57dee4f90c5e5b64803be4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userName: Aks635176094568164760
+  module: LogModule
+  eventName: LogEvent
+  text: LogTEXT
+  level: LogLEVEL
+  msg: Hi I M Using App42 Log For Unity3D
+  max: 2
+  offSet: 1
+  success: 
+--- !u!114 &1238109937
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e175ba06d7efec44b7e9e30d5474428, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  password: password
+  max: 2
+  offSet: 1
+  success: 
+  box: 
+--- !u!114 &1238109938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d13823fbdb738043a74c02905ad27dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+  box: 
+--- !u!114 &1238109939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc115dc6ab2b3042bf095e0bbeb065d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userScore: 1000
+  Score1: 2000
+  max: 2
+  offSet: 1
+  success: 
+--- !u!114 &1238109940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07b346db64d09e94ca1a882ac44c0816, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+  box: 
+--- !u!114 &1238109941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73bcb5ca58e184945889f559a8f53b8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userName: <Name of the user>
+  status: <Status that has to update on wall>
+  appId: <facebook_app_id>
+  appSecret: <facebook_app_secret>
+  fbAccessToken: <facebook_access_token>
+  consumerKey: <twitter_consumer_key>
+  consumerSecret: <twitter_consumer_secret>
+  accessToken: <twitter_access_token>
+  accessTokenSecret: <twitter_access_token_secret>
+  linkedinApiKey: <linkedin_api_key>
+  linkedinSecretKey: <linkedin_secret_key>
+  linkedinAccessToken: <linkedin_access_token>
+  linkedinAccessTokenSecret: <linkedin_access_token_secret>
+  success: 
+--- !u!114 &1238109942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1bb928a8a343aa4cb5427a73926e23b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rewardDescription: REWARD DESCRIPTION
+  rewardPoints: 10000
+  rewardPoints1: 2000
+  max: 2
+  offSet: 1
+  success: 
+  box: 
+--- !u!114 &1238109943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fee1d6a8e9f235941ba288f0ea8dceee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collectionName: NewCollection
+  max: 2
+  offSet: 1
+  success: 
+  box: 
+--- !u!114 &1238109944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c49a21746ddd41c4cbb7dbbb1bb4e48b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  password: password
+  max: 2
+  offSet: 1
+  success: 
+  box: 
+--- !u!114 &1238109945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d45bf993a79e4c944910680367f9eb8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+--- !u!114 &1238109946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4d28842eb9795b488010219b114dab4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  success: 
+--- !u!114 &1238109947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9249de124c87ca840b9762addfd51cf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sessionId: 
+  success: 
+--- !u!114 &1238109948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17c9eb113426ed7499931197ee440b56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userName: Paul
+  buddyName: Nick
+  buddyName1: Aks
+  buddyName2: Juno
+  message: Hi I Am Using App42 BuddyService
+  groupName: App42BuddyGroup
+  ownerName: Paul
+  maxDistance: 1000
+  success: 
+--- !u!114 &1238109949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ead70d05e57dee4f90c5e5b64803be4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userName: Aks635176094949165874
+  module: LogModule
+  eventName: LogEvent
+  text: LogTEXT
+  level: LogLEVEL
+  msg: Hi I M Using App42 Log For Unity3D
+  max: 2
+  offSet: 1
+  success: 
+--- !u!114 &1238109950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1238109908}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e175ba06d7efec44b7e9e30d5474428, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  password: password
+  max: 2
+  offSet: 1
+  success: 
+  box: 
