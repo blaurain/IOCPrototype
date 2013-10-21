@@ -4,8 +4,8 @@ namespace AssemblyCSharp
 {
 	public class Constant 
 	{
-        public string apiKey = "b6edf94254df0385fcbacea4c5e34cf86a2320e784cb2ab1e4297c5a7265bcdc";						// API key that you have receieved after the success of app creation from AppHQ
-        public string secretKey = "49d28c19d17b82763d13772ea1c33869a0256d41a0ba28f94c0fc6712ba72b5f";					// SECRET key that you have receieved after the success of app creation from AppHQ
+        public string apiKey = "632e423ee26a2bd861bff64ab1bb57c698f32b517781f10b0f8a8703fdde74f4";						// API key that you have receieved after the success of app creation from AppHQ
+        public string secretKey = "07b133dbbbc60d682a6341b67fe1a134ac8e5ca91dd01b2f574807beee767cc0";					// SECRET key that you have receieved after the success of app creation from AppHQ
 		public string gameName ="SurvivorPrototype";						// Name of the game which you can create from AppHQ console by clicking 
 																		// Business Service -> Game Service -> Game -> Add Game
 		public string description  = "<Enter_the_description>";			// Enter your description

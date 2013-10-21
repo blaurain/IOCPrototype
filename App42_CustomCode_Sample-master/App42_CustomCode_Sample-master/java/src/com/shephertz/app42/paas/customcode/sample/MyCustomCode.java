@@ -15,8 +15,8 @@ import com.shephertz.app42.paas.sdk.java.user.UserService;
 public class MyCustomCode implements Executor {
 
 	 private ServiceAPI sp = new ServiceAPI(	  	
-			     "b6edf94254df0385fcbacea4c5e34cf86a2320e784cb2ab1e4297c5a7265bcdc",
-			      "49d28c19d17b82763d13772ea1c33869a0256d41a0ba28f94c0fc6712ba72b5f");
+			     "632e423ee26a2bd861bff64ab1bb57c698f32b517781f10b0f8a8703fdde74f4",
+			      "07b133dbbbc60d682a6341b67fe1a134ac8e5ca91dd01b2f574807beee767cc0");
 	 
 
 	private final int HTTP_STATUS_SUCCESS = 200;
