@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum GameplayState
 {
@@ -10,19 +11,21 @@ public enum GameplayState
 
 public class GameplayManager : MonoBehaviour
 {
+
     public GameObject HookObject;
     public GameObject ActiveView;
     public BackgroundHandler Background;
     public LevelGenerator LevelGen; //last public member
-    
-    private const float ScreenBoundWorldX = 30;
+
+    public static float ScreenBoundWorldX = 30;
     private const float MouseMoveLimit = 5;
     private const float KeyMovementSpeed = 50;
-    
+
     private float CurrentDepth;
     private GameplayState GameState;
-    private float CurrentScrollSpeed = 7f;
-    
+    private float CurrentScrollSpeed = 10f;
+    private static Stack<WaterObjectInstance> FishStackz = new Stack<WaterObjectInstance>();
+
     private const float GenerateDistance = 30;
     private const float GenTimerBaseMax = 2f;
     private const float GenTimerBaseMin = .7f;
@@ -69,28 +72,57 @@ public class GameplayManager : MonoBehaviour
         HandleKeyboardInput();
     }
 
-    public void UpdateCast()
+    public static void DeadFishHere(WaterObject deadFish)
     {
-        GenTimer += Time.deltaTime;
-        if (GenTimer > GenNextSpawnTime)
-        {
-            GameObject wObj = LevelGen.GetOrCreate(GetRandomType());
-            tk2dSprite wSprite = wObj.GetComponent<tk2dSprite>();
+        WaterObjectInstance df = new WaterObjectInstance();
+        df.wObjectColor = deadFish.ObjColor;
+        df.wObjectDepth = deadFish.transform.localPosition.y;
+        df.wObjectType = deadFish.ObjType;
+        FishStackz.Push(df); //push a dead fish
+        deadFish.gameObject.SetActive(false);
+    }
 
-            float rndX = Random.Range(-ScreenBoundWorldX, ScreenBoundWorldX);
-            wObj.transform.localPosition = new Vector3(rndX, ActiveView.transform.localPosition.y - GenerateDistance, 0);
+    public void HookHit(WaterObject thingItHit, Collision c)
+    {
+        Vector3 contactWorld = new Vector3(c.contacts[0].point.x, c.contacts[0].point.y, 0);
+        thingItHit.gameObject.collider.enabled = false;
+        if (GameState == GameplayState.Casting)
+            thingItHit.Caught(contactWorld, true);
+        else
+            thingItHit.Caught(contactWorld, false);
 
-            
+        float distY = thingItHit.gameObject.transform.parent.position.y - contactWorld.y;
+        float distX = thingItHit.gameObject.transform.parent.position.x - contactWorld.x;
 
-            GenTimer = 0;
-            GenNextSpawnTime = Random.Range(GenTimerBaseMin, GenTimerBaseMax);
-        }
 
-        if (Depth > NextDepthGoal)
-        {
-            SetOddsByDepth();
-            NextDepthGoal += DepthGoalSectionLength;
-        }
+        thingItHit.gameObject.transform.parent.position = new Vector3(
+            thingItHit.gameObject.transform.parent.position.x - distX,
+            thingItHit.gameObject.transform.parent.position.y - distY,
+            0);
+        thingItHit.gameObject.transform.localPosition = new Vector3(
+            thingItHit.gameObject.transform.localPosition.x + distX,
+            thingItHit.gameObject.transform.localPosition.y + distY,
+            0);
+
+
+        //ConfigurableJoint joint = thingItHit.gameObject.AddComponent<ConfigurableJoint>();
+        //joint.autoConfigureConnectedAnchor = false;
+        //SoftJointLimit limit = new SoftJointLimit();
+        //limit.limit = .1f;
+        //joint.linearLimit = limit;
+        //joint.anchor = thingItHit.gameObject.transform.InverseTransformPoint(contactWorld);
+        //joint.connectedAnchor = thingItHit.gameObject.transform.InverseTransformPoint(contactWorld);
+        //joint.axis = new Vector3(0, 0, 1);
+        //joint.connectedBody = HookObject.rigidbody;
+        //thingItHit.gameObject.rigidbody.useGravity = false;
+
+        // thingItHit.gameObject.transform.parent = HookObject.transform;
+        //thingItHit.gameObject.transform.position = new Vector3(
+        //    HookObject.transform.position.x, 
+        //    thingItHit.transform.position.y, 
+        //    thingItHit.transform.position.z);
+        thingItHit.gameObject.transform.parent.parent = HookObject.transform;
+
     }
 
     public void StartGame()
@@ -102,6 +134,30 @@ public class GameplayManager : MonoBehaviour
         GenNextSpawnTime = Random.Range(GenTimerBaseMin, GenTimerBaseMax);
         NextDepthGoal = DepthGoalSectionLength;
         SetOddsByDepth();
+    }
+
+    private void UpdateCast()
+    {
+        GenTimer += Time.deltaTime;
+        if (GenTimer > GenNextSpawnTime)
+        {
+            GameObject wObj = LevelGen.GetOrCreate(GetRandomType());
+            tk2dSprite wSprite = wObj.GetComponent<tk2dSprite>();
+
+            float rndX = Random.Range(-ScreenBoundWorldX, ScreenBoundWorldX);
+            wObj.transform.localPosition = new Vector3(rndX, ActiveView.transform.localPosition.y - GenerateDistance, 0);
+
+
+
+            GenTimer = 0;
+            GenNextSpawnTime = Random.Range(GenTimerBaseMin, GenTimerBaseMax);
+        }
+
+        if (Depth > NextDepthGoal)
+        {
+            SetOddsByDepth();
+            NextDepthGoal += DepthGoalSectionLength;
+        }
     }
 
     private void SetOddsByDepth()
@@ -173,4 +229,5 @@ public class GameplayManager : MonoBehaviour
             HookObject.transform.localPosition.z);
 
     }
+
 }

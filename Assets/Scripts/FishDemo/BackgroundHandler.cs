@@ -4,7 +4,7 @@ using System.Collections;
 public class BackgroundHandler : MonoBehaviour
 {
     public GameObject CameraGO;
-    private const float paralaxMultiplier = .7f;
+    private const float paralaxMultiplier = .5f;
 
     public void Start()
     {
