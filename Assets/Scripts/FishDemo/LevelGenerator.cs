@@ -14,10 +14,7 @@ public class LevelGenerator
     private List<GameObject> ObjListBoot;
     private List<GameObject> ObjListBarrel;
 
-    public GameObject Fish1Folder;
-    public GameObject Fish2Folder;
-    public GameObject BootFolder;
-    public GameObject BarrelFolder;
+    public GameObject MasterFolder;
 
     public LevelGenerator()
     {
@@ -25,6 +22,22 @@ public class LevelGenerator
         ObjListFishType2 = new List<GameObject>();
         ObjListBoot = new List<GameObject>();
         ObjListBarrel = new List<GameObject>();
+    }
+
+    public List<GameObject> GetOrCreate(WaterObjectType t, int numToCreate)
+    {
+        List<GameObject> goList = new List<GameObject>();
+        for (int i = 0; i < numToCreate; i++)
+            goList.Add(GetOrCreate(t));
+
+        //foreach (GameObject go in goList) //assign their school buddies
+        //{
+        //    WaterObject wo = go.GetComponentInChildren<WaterObject>();
+        //    wo.SchoolSize = numToCreate;
+        //    wo.School = goList;
+        //}
+
+        return goList; //add peer list to objs
     }
 
     public GameObject GetOrCreate(WaterObjectType t)
@@ -36,13 +49,13 @@ public class LevelGenerator
                 {
                     if (!go.activeInHierarchy)
                     {
-                        go.SetActive(true);
+                        SetSingleFishActive(go);
                         return go;
                     }
                 }
                 //didn't find it, create new one
                 GameObject newGO1 = (GameObject)GameObject.Instantiate(PrefabFishType1);
-                newGO1.transform.parent = Fish1Folder.transform;
+                newGO1.transform.parent = MasterFolder.transform;
                 ObjListFishType1.Add(newGO1);
                 return newGO1;
 
@@ -51,13 +64,13 @@ public class LevelGenerator
                 {
                     if (!go.activeInHierarchy)
                     {
-                        go.SetActive(true);
+                        SetSingleFishActive(go);
                         return go;
                     }
                 }
                 //didn't find it, create new one
                 GameObject newGO2 = (GameObject)GameObject.Instantiate(PrefabFishType2);
-                newGO2.transform.parent = Fish2Folder.transform;
+                newGO2.transform.parent = MasterFolder.transform;
                 ObjListFishType2.Add(newGO2);
                 return newGO2;
 
@@ -67,15 +80,33 @@ public class LevelGenerator
                 {
                     if (!go.activeInHierarchy)
                     {
-                        go.SetActive(true);
+                        SetSingleFishActive(go);
                         return go;
                     }
                 }
                 //didn't find it, create new one
                 GameObject newGO3 = (GameObject)GameObject.Instantiate(PrefabBoot);
-                newGO3.transform.parent = BootFolder.transform;
+                newGO3.transform.parent = MasterFolder.transform;
                 ObjListBoot.Add(newGO3);
                 return newGO3;
         }
+    }
+
+    public void ClearAll()
+    {
+        List<GameObject> allChildren = new List<GameObject>();
+        foreach (Transform child in MasterFolder.transform) allChildren.Add(child.gameObject);
+        allChildren.ForEach(child => GameObject.Destroy(child));
+
+        ObjListBarrel.Clear();
+        ObjListBoot.Clear();
+        ObjListFishType1.Clear();
+        ObjListFishType2.Clear();
+    }
+
+    private void SetSingleFishActive(GameObject go)
+    {
+        go.SetActive(true);
+        go.GetComponentInChildren<WaterObject>().IsPartOfSchool = false;
     }
 }

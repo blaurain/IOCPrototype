@@ -18,15 +18,15 @@ public class GameSystem : MonoBehaviour
     }
     #endregion
 
+    public GameplayManager GameManager;
 
+    //public void Awake()
+    //{
 
-    public void Awake()
-    {
+    //}
 
-    }
+    //public void Update()
+    //{
 
-    public void Update()
-    {
-
-    }
+    //}
 }

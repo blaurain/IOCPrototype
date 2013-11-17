@@ -2,6 +2,19 @@
 {
     FishType1,
     FishType2,
-    ExplodingBarrel,
+    Angelfish,
+    Eel,
+    Jellyfish,
+    Puffer,
+    Shark,
+    Swordfish,
+    Trout,
+    Tire,
     Boot
+}
+
+public enum SchoolType
+{
+    SwimmingV,
+    SliceNDice
 }
