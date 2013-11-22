@@ -14,6 +14,17 @@ public struct WaterObjectInstance
     public int SchoolSize;
 }
 
+public enum BillyColors
+{
+    DarkPink,
+    BurntOrange,
+    LimeGreen,
+    FishYellow,
+    LightBlue,
+    DarkRed,
+    DarkGrey
+}    
+
 public enum WObjState
 {
     Swim,
@@ -25,6 +36,7 @@ public enum WObjState
 
 public class WaterObject : MonoBehaviour
 {
+    public static int NumberOfFishTypes = 9;
     public WaterObjectType ObjType; //set on prefab
     private bool isFish;
     private bool isCaught;
@@ -78,12 +90,24 @@ public class WaterObject : MonoBehaviour
         {
             switch (ObjType)
             {
-                case WaterObjectType.FishType1:
+                case WaterObjectType.Angelfish:
                     return 100;
-                case WaterObjectType.FishType2:
-                    return 200;
                 case WaterObjectType.Boot:
-                    return -10;
+                    return 100;
+                case WaterObjectType.Eel:
+                    return 100;
+                case WaterObjectType.Jellyfish:
+                    return 100;
+                case WaterObjectType.Puffer:
+                    return 100;
+                case WaterObjectType.Shark:
+                    return 100;
+                case WaterObjectType.Swordfish:
+                    return 100;
+                case WaterObjectType.Tire:
+                    return 100;
+                case WaterObjectType.Trout:
+                    return 100;
                 default:
                     return 0;
             }
@@ -109,22 +133,24 @@ public class WaterObject : MonoBehaviour
     {
         switch (ObjType)
         {
-            case WaterObjectType.FishType1:
-                fishSpeed = Random.Range(FishMinSpeed, FishMaxSpeed * .7f);
-                isFish = true;
-                State = WObjState.Swim;
-                break;
-
-            case WaterObjectType.FishType2:
-                fishSpeed = Random.Range(FishMinSpeed, FishMaxSpeed);
+            case WaterObjectType.Angelfish:
+            case WaterObjectType.Eel:
+            case WaterObjectType.Jellyfish:
+            case WaterObjectType.Trout:
+            case WaterObjectType.Puffer:
+            case WaterObjectType.Shark:
+            case WaterObjectType.Swordfish:
+                fishSpeed = GetRandomFishSpeed(ObjType);
                 isFish = true;
                 State = WObjState.Swim;
                 break;
 
             case WaterObjectType.Boot:
+            case WaterObjectType.Tire:
                 isFish = false;
                 State = WObjState.Float;
                 break;
+
         }
 
         //choose random direction
@@ -133,7 +159,7 @@ public class WaterObject : MonoBehaviour
         else Facingleft = false;
 
         //choose random color
-        if (isFish) ObjColor = GetRandomFishColor();
+        if (isFish) ObjColor = GetRandomFishColor(ObjType);
     }
 
     public void Update()
@@ -299,47 +325,119 @@ public class WaterObject : MonoBehaviour
                     transform.parent.localPosition.z);
             }
         }
-
-
     }
 
     public static float GetRandomFishSpeed(WaterObjectType t)
     {
         switch (t)
         {
-            case WaterObjectType.FishType1:
-                return Random.Range(FishSlowBase/2, FishSlowBase);
+            case WaterObjectType.Angelfish:
+                return Random.Range(FishMediumBase / 2, FishMediumBase);
 
-            case WaterObjectType.FishType2:
-                return Random.Range(FishMediumBase/2, FishMediumBase);
+            case WaterObjectType.Eel:
+                return Random.Range(FishMediumBase / 2, FishMediumBase);
 
+            case WaterObjectType.Jellyfish:
+                return Random.Range(FishMediumBase / 2, FishMediumBase);
+
+            case WaterObjectType.Puffer:
+                return Random.Range(FishMediumBase / 2, FishMediumBase);
+
+            case WaterObjectType.Shark:
+                return Random.Range(FishMediumBase / 2, FishMediumBase);
+
+            case WaterObjectType.Swordfish:
+                return Random.Range(FishMediumBase / 2, FishMediumBase);
+            
+            case WaterObjectType.Trout:
+                return Random.Range(FishMediumBase / 2, FishMediumBase);
+
+            case WaterObjectType.Tire:
             case WaterObjectType.Boot:
             default:
                 return 0;
         }
     }
 
-    private Color GetRandomFishColor()
+    
+
+    public static Color GetBillyColor(BillyColors c)
     {
-        int rndColor = Random.Range(0, 5);
-        switch (rndColor)
+        switch (c)
         {
-            case 0:
-                return RegularToUnityColor(0, 95, 227); //light blue
-            case 1:
-                return RegularToUnityColor(156, 26, 34); //dark red
-            case 2:
-                return RegularToUnityColor(105, 195, 105); //lime green
-            case 3:
-                return RegularToUnityColor(163, 89, 130); //dark pink
-            case 4:
-                return RegularToUnityColor(197, 191, 120); //fish yellow
+            
+            case BillyColors.DarkPink:
+                return ToColor(163, 89, 130); //dark pink
+            case BillyColors.DarkRed:
+                return ToColor(156, 26, 34); //dark red
+            case BillyColors.LightBlue:
+                return ToColor(0, 95, 227); //light blue
+            case BillyColors.FishYellow:
+                return ToColor(197, 191, 120); //fish yellow
+            case BillyColors.LimeGreen:
+                return ToColor(105, 195, 105); //lime green\
+            case BillyColors.DarkGrey:
+                return ToColor(98, 98, 98);
             default:
-                return RegularToUnityColor(167, 79, 0); //burnt orange
+            case BillyColors.BurntOrange:
+                return ToColor(167, 79, 0); //burnt orange
         }
     }
 
-    private Color RegularToUnityColor(float r, float g, float b)
+    public static Color GetRandomFishColor(WaterObjectType t)
+    {
+        switch (t)
+        {
+            case WaterObjectType.Angelfish:
+                return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink, 
+                    BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
+                    BillyColors.FishYellow);
+
+            case WaterObjectType.Eel:
+                return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
+                    BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
+                    BillyColors.FishYellow);
+
+            case WaterObjectType.Jellyfish:
+                return ChooseRandomlyBetween(BillyColors.BurntOrange, BillyColors.LightBlue, 
+                    BillyColors.LimeGreen, BillyColors.FishYellow);
+
+            case WaterObjectType.Puffer:
+                return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
+                    BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
+                    BillyColors.FishYellow);
+
+            case WaterObjectType.Shark:
+                return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink);
+
+            case WaterObjectType.Swordfish:
+                return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
+                    BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
+                    BillyColors.FishYellow);
+
+            case WaterObjectType.Trout:
+                return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
+                    BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
+                    BillyColors.FishYellow);
+
+            case WaterObjectType.Tire:
+                return ChooseRandomlyBetween(BillyColors.DarkGrey);
+
+            case WaterObjectType.Boot:
+                return ChooseRandomlyBetween(BillyColors.BurntOrange);
+
+            default:
+                return ChooseRandomlyBetween(BillyColors.DarkGrey);
+        }
+    }
+
+    public static Color ChooseRandomlyBetween(params BillyColors[] colors)
+    {
+        int rndColor = Random.Range(0, colors.Length);
+        return GetBillyColor(colors[rndColor]);
+    }
+
+    public static Color ToColor(float r, float g, float b)
     {
         return new Color(r / 255f, g / 255f, b / 255f);
     }

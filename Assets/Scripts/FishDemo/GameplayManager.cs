@@ -5,7 +5,9 @@ using System.Collections.Generic;
 public enum GameplayState
 {
     AtTop,
-    BackToTop,
+    FinishReel,
+    MoveToTop,
+    MoveToStart,
     Casting,
     Reeling,
     Switching
@@ -16,20 +18,23 @@ public class GameplayManager : MonoBehaviour
     public GameObject HookObject;
     public GameObject ActiveView;
     public BackgroundHandler Background;
-    public tk2dTextMesh UIDepth;
-    public tk2dTextMesh UIScore;
-    public tk2dTextMesh UIHighScore;
-    public tk2dTextMesh UIDepthRecord;
-    public GameObject UIInstructions;
-    public tk2dUIItem PlayButton;
+    public GUIManager UI;
     public LevelGenerator LevelGen; //last public member
 
     public static float ScreenBoundWorldX = 30;
     private const float MouseMoveLimit = 5;
     private const float KeyMovementSpeed = 50;
-    private const float HookUpperY = 10;
-    private const float HookLowerY = -10;
 
+    private readonly Vector3 HookOffScreenPosition = new Vector3(0, 30, 0);
+    private readonly Vector3 HookUpperPosition = new Vector3(0, 10, 0);
+    private readonly Vector3 HookLowerPosition = new Vector3(0, -10, 0);
+
+    private bool Boosting;
+    private float BoostTimer;
+    private float RechargeTimer;
+    private const float BoostTimeLimit = .4f;
+    private const float BoostSpeed = 2.6f;
+    private const float RechargeTime = 3.0f;
     private int NumFishCaught;
     private float CurrentDepth;
     private int FarthestDepth;
@@ -58,12 +63,11 @@ public class GameplayManager : MonoBehaviour
     private float GenTimerAdjustment;
     private float GenNextSpawnTime;
     private float SchoolGenNextSpawnTime;
+    private float[] GenOdds;
     private float OddsType1;
     private float OddsType2;
     private float OddsBoot;
     private float NextDepthGoal;
-    private int CurrentDepthDisplay;
-
     #region PlayerPrefs
     private const string HighScoreKey = "HighScore";
     private bool gotHighScore = false;
@@ -77,7 +81,7 @@ public class GameplayManager : MonoBehaviour
             {
                 if (PlayerPrefs.HasKey(HighScoreKey))
                 {
-                    
+
                     gotHighScore = true;
                     highScore = PlayerPrefs.GetInt(HighScoreKey);
                     return highScore;
@@ -105,7 +109,6 @@ public class GameplayManager : MonoBehaviour
             {
                 if (PlayerPrefs.HasKey(DepthRecordKey))
                 {
-                    
                     gotDepthRecord = true;
                     depthRecord = PlayerPrefs.GetInt(DepthRecordKey);
                     return depthRecord;
@@ -122,15 +125,29 @@ public class GameplayManager : MonoBehaviour
     }
     #endregion
 
+    private float rechargePercentage;
+    private float RechargePercentage
+    {
+        get { return rechargePercentage; }
+        set
+        {
+            //update ui here  
+            UI.SetRechargeFill(rechargePercentage);
+            rechargePercentage = value;
+        }
+    }
+
     private float Depth
     {
         get { return -ActiveView.transform.localPosition.y; }
     }
 
-    public void Start()
+    public void Awake()
     {
         //StartGame();
         GameState = GameplayState.AtTop;
+        GenOdds = new float[WaterObject.NumberOfFishTypes];
+
     }
 
     public void Update()
@@ -138,15 +155,66 @@ public class GameplayManager : MonoBehaviour
         switch (GameState)
         {
             case GameplayState.AtTop:
+                Background.UpdateWaves();
 
                 break;
 
-            case GameplayState.BackToTop:
-                UpdateBackToTop();
+            case GameplayState.FinishReel:
+                UpdateFinishReel();
+                break;
+
+            case GameplayState.MoveToTop:
+                Background.UpdateWaves();
+
+                if (RaiseAnchorOffScreen())
+                {
+                    if (Background.MoveToTop()) //only need one call, calls zoom inside of move
+                        SetUpTop();
+                }
+
+
+                break;
+
+            case GameplayState.MoveToStart:
+                Background.UpdateWaves();
+
+                bool panToStartDone = Background.MoveToStart();
+                bool zoomToStartDone = Background.ZoomToStart();
+
+                if (panToStartDone && zoomToStartDone)
+                {
+                    if (LowerAnchorToStart())
+                        StartCast();
+                }
+
                 break;
 
             case GameplayState.Casting:
-                float amtToMoveDown = CurrentScrollSpeed * Time.deltaTime;
+                float amtToMoveDown;
+
+                if (Boosting)
+                {
+                    amtToMoveDown = CurrentScrollSpeed * BoostSpeed * Time.deltaTime;
+                    BoostTimer -= Time.deltaTime;
+                    RechargePercentage = BoostTimer / BoostTimeLimit;
+
+                    if (BoostTimer <= 0f)
+                    {
+                        RechargeTimer = 0;
+                        Boosting = false;
+                    }
+                }
+                else
+                {
+                    amtToMoveDown = CurrentScrollSpeed * Time.deltaTime;
+                    if (RechargeTimer < RechargeTime)
+                    {
+                        RechargeTimer += Time.deltaTime;
+                        if (RechargeTimer > RechargeTime) RechargeTimer = RechargeTime;
+                        RechargePercentage = RechargeTimer / RechargeTime;
+                    }
+                }
+
                 ActiveView.transform.localPosition = new Vector3(
                     0, ActiveView.transform.localPosition.y - amtToMoveDown, 0);
                 Background.MoveCameraDown(amtToMoveDown);
@@ -165,7 +233,7 @@ public class GameplayManager : MonoBehaviour
                 if (ActiveView.transform.localPosition.y >= 0)
                 { //at top
                     ActiveView.transform.localPosition = new Vector3(0, 0, 0);
-                    SwitchToTop();
+                    ReelDone();
                 }
                 break;
 
@@ -176,21 +244,28 @@ public class GameplayManager : MonoBehaviour
         HandleKeyboardInput();
         SetDepthUI();
     }
-    
+
     public void StartGame()
     {
         CurrentDepth = 0;
         ActiveView.transform.localPosition = new Vector3(0, 0, 0);
-        GameState = GameplayState.Casting;
+        GameState = GameplayState.MoveToStart;
         GenTimer = 0;
         NumFishCaught = 0;
         PlayerScore = 0;
-        CurrentDepthDisplay = 0;
         GenTimerAdjustment = 0;
         FarthestDepth = 0;
+        Boosting = false;
+        BoostTimer = 0;
+        RechargePercentage = 0;
+        RechargeTimer = 0;
+
+        UI.ResetPulsing();
+
+        RechargePercentage = 0;
         FishCaught.Clear();
         CurrentScrollSpeed = ScrollSpeedStart;
-        HookObject.transform.localPosition = new Vector3(0, HookUpperY, 0);
+        HookObject.transform.localPosition = new Vector3(0, HookOffScreenPosition.y, 0);
         GenNextSpawnTime = Random.Range(GenTimerBaseMin, GenTimerBaseMax);
         NextDepthGoal = DepthGoalSectionLength;
         SetOddsByDepth();
@@ -198,13 +273,70 @@ public class GameplayManager : MonoBehaviour
         SetDepthUI();
     }
 
+    public void StartCast()
+    {
+        GameState = GameplayState.Casting;
+        Background.EnableWaves(false);
+        HookObject.transform.localPosition = new Vector3(0, HookUpperPosition.y, 0);
+        UI.StartCasting();
+    }
+
+    public void SetUpTop()
+    {
+        GameState = GameplayState.AtTop;
+        UI.SetUpTopMenu(true);
+
+        //take care of fish
+        LevelGen.ClearAll();
+        foreach (WaterObject w in FishCaught)
+        {
+            Destroy(w.gameObject.transform.parent.gameObject);
+        }
+
+        FishCaught.Clear();
+    }
+
+    private void ReelDone()
+    {
+        GameState = GameplayState.FinishReel;
+        Background.EnableWaves(true);
+    }
+
+    private bool LowerAnchorToStart()
+    {
+        HookObject.transform.localPosition = new Vector3(
+            HookUpperPosition.x,
+            HookObject.transform.localPosition.y - (CurrentScrollSpeed * Time.deltaTime),
+            HookUpperPosition.z);
+
+        if (HookObject.transform.localPosition.y <= HookUpperPosition.y)
+        {
+            HookObject.transform.localPosition = HookUpperPosition;
+            return true;
+        }
+        else return false;
+    }
+
+    private bool RaiseAnchorOffScreen()
+    {
+        HookObject.transform.localPosition = new Vector3(
+            HookObject.transform.localPosition.x,
+            HookObject.transform.localPosition.y + (CurrentScrollSpeed * Time.deltaTime),
+            HookOffScreenPosition.z);
+
+        if (HookObject.transform.localPosition.y >= HookOffScreenPosition.y)
+        {
+            HookObject.transform.localPosition = HookOffScreenPosition;
+            return true;
+        }
+        else return false;
+    }
+
     public void PlayButtonHit()
     {
         StartGame();
-        PlayButton.gameObject.SetActive(false);
-        UIHighScore.gameObject.transform.parent.gameObject.SetActive(false);
-        UIDepthRecord.gameObject.transform.parent.gameObject.SetActive(false);
-        UIInstructions.gameObject.SetActive(false);
+        //change UI
+        UI.SetUpTopMenu(false);
     }
 
     public void DeadFishHere(WaterObject deadFish)
@@ -213,7 +345,7 @@ public class GameplayManager : MonoBehaviour
         {
             //Debug.Log("type: " + deadFish.ObjType.ToString() + " color: " + deadFish.ObjColor.ToString());
             AddFishToStack(deadFish, false);
-            
+
             if (deadFish.IsPartOfSchool)
             {
                 List<GameObject> schoolList = deadFish.School;
@@ -221,7 +353,7 @@ public class GameplayManager : MonoBehaviour
                 foreach (GameObject go in schoolList)
                 {
                     WaterObject wo = go.GetComponentInChildren<WaterObject>();
-                    if((wo.State == WObjState.Swim) && (wo != deadFish))
+                    if ((wo.State == WObjState.Swim) && (wo != deadFish))
                         AddFishToStack(wo, true);
                 }
             }
@@ -281,22 +413,22 @@ public class GameplayManager : MonoBehaviour
         AddScore(thingItHit.ScoreValue);
         NumFishCaught++;
         FishCaught.Add(thingItHit);
-        if(GameState == GameplayState.Casting) CurrentScrollSpeed -= ScrollSpeedDecrease;
-        if (NumFishCaught >= 3 && GameState == GameplayState.Casting)
+
+        if (GameState == GameplayState.Casting)
         {
             GameState = GameplayState.Switching;
             FarthestDepth = (int)Depth;
+            UI.HideBoostFill();
         }
+
     }
-
-
 
     private void UpdateCast()
     {
         GenTimer += Time.deltaTime;
         if (GenTimer > GenNextSpawnTime)
         { //spawn one fish
-            GameObject wObj = LevelGen.GetOrCreate(GetRandomType());
+            GameObject wObj = LevelGen.GetOrCreate(GetRandomType(false));
 
             float rndX = Random.Range(-ScreenBoundWorldX, ScreenBoundWorldX);
             wObj.transform.localPosition = new Vector3(rndX, -(Depth + GenerateDistance), 0);
@@ -308,8 +440,8 @@ public class GameplayManager : MonoBehaviour
         SchoolGenTimer += Time.deltaTime;
         if (SchoolGenTimer > SchoolGenNextSpawnTime)
         { //spawn a school of fish
-            int NumOfSchoolTypes = 2;
-            switch(Random.Range(0, NumOfSchoolTypes))
+            int NumOfSchoolTypes = 5;
+            switch (Random.Range(0, NumOfSchoolTypes))
             {
                 case 0: //swimming V (random direction and v direction, random speed and type too)
                     GenerateSchool(SchoolType.SwimmingV);
@@ -317,6 +449,18 @@ public class GameplayManager : MonoBehaviour
 
                 case 1: //Slice N Dice (three fish, middle spawn other direction at other side, fast)
                     GenerateSchool(SchoolType.SliceNDice);
+                    break;
+
+                case 2: //half of the flying v
+                    GenerateSchool(SchoolType.Slant);
+                    break;
+
+                case 3: //three in a line and two staggered slicing through them
+                    GenerateSchool(SchoolType.Mixer);
+                    break;
+
+                case 4: //4 fish in a diamond shape
+                    GenerateSchool(SchoolType.Diamond);
                     break;
             }
 
@@ -327,10 +471,10 @@ public class GameplayManager : MonoBehaviour
         if (Depth > NextDepthGoal)
         {
             SetOddsByDepth();
-            
+
             NextDepthGoal += DepthGoalSectionLength;
-            
-            if((GenTimerBaseMax - GenTimerAdjustment) > GenTimerLowestMax)
+
+            if ((GenTimerBaseMax - GenTimerAdjustment) > GenTimerLowestMax)
                 GenTimerAdjustment += GenTimerIncrement;
         }
     }
@@ -341,18 +485,15 @@ public class GameplayManager : MonoBehaviour
         {
             GameObject wObj = LevelGen.GetOrCreate(NextFish.Type);
             WaterObject wObjScript = wObj.GetComponentInChildren<WaterObject>();
-            
+
             wObj.transform.localPosition = new Vector3(NextFish.XPos, -NextFish.Depth, 0);
             wObjScript.ObjColor = NextFish.Color;
             wObjScript.fishSpeed = NextFish.Speed;
             wObjScript.Facingleft = NextFish.FacingLeft;
-            //Debug.Log("gen fish- type: " + NextFish.wObjectType.ToString() + " color: " + NextFish.wObjectColor.ToString());
-            //need a way to regen entire school at a time, save school instead of individual fish
-            //seperate school stack?
 
             if (NextFish.PartOfSchool)
             {
-                Debug.Log("regenning school, size: " + NextFish.SchoolSize);
+                //Debug.Log("regenning school, size: " + NextFish.SchoolSize);
                 for (int i = 0; i < NextFish.SchoolSize - 1; i++)
                 {
                     if (FishStackz.Count != 0) NextFish = FishStackz.Pop();
@@ -384,13 +525,13 @@ public class GameplayManager : MonoBehaviour
     private void UpdateSwitch()
     {
         HookObject.transform.localPosition = new Vector3(
-            HookObject.transform.localPosition.x, 
-            HookObject.transform.localPosition.y - (CurrentScrollSpeed * Time.deltaTime), 
+            HookObject.transform.localPosition.x,
+            HookObject.transform.localPosition.y - (CurrentScrollSpeed * Time.deltaTime),
             0);
 
-        if (HookObject.transform.localPosition.y < HookLowerY)
+        if (HookObject.transform.localPosition.y < HookLowerPosition.y)
         {
-            HookObject.transform.localPosition = new Vector3(HookObject.transform.localPosition.x, HookLowerY, 0);
+            HookObject.transform.localPosition = new Vector3(HookObject.transform.localPosition.x, HookLowerPosition.y, 0);
             GameState = GameplayState.Reeling;
             CurrentScrollSpeed = ReelSpeedStart;
 
@@ -406,20 +547,16 @@ public class GameplayManager : MonoBehaviour
         }
     }
 
-    private void UpdateBackToTop()
+    private void UpdateFinishReel()
     {
         HookObject.transform.localPosition = new Vector3(
             HookObject.transform.localPosition.x,
             HookObject.transform.localPosition.y + (CurrentScrollSpeed * Time.deltaTime),
             0);
 
-        if (HookObject.transform.localPosition.y > HookUpperY)
+        if (HookObject.transform.localPosition.y > HookUpperPosition.y)
         {
-            GameState = GameplayState.AtTop;
-            PlayButton.gameObject.SetActive(true);
-            UIHighScore.gameObject.transform.parent.gameObject.SetActive(true);
-            UIDepthRecord.gameObject.transform.parent.gameObject.SetActive(true);
-            UIInstructions.gameObject.SetActive(true);
+            GameState = GameplayState.MoveToTop;
 
             bool setNewRecord = false;
             if (HighScore < PlayerScore)
@@ -427,6 +564,7 @@ public class GameplayManager : MonoBehaviour
                 Debug.Log("new high score!");
                 HighScore = PlayerScore;
                 setNewRecord = true;
+                UI.HighScorePulse = true;
             }
 
             if (DepthRecord < FarthestDepth)
@@ -434,52 +572,37 @@ public class GameplayManager : MonoBehaviour
                 Debug.Log("new depth record!");
                 DepthRecord = FarthestDepth;
                 setNewRecord = true;
+                UI.DepthRecordPulse = true;
             }
 
             if (setNewRecord) PlayerPrefs.Save();
 
             Debug.Log("high score: " + HighScore + " depth record: " + DepthRecord);
-            UIHighScore.text = HighScore.ToString();
-            UIDepthRecord.text = DepthRecord.ToString() + "m";
-
-            LevelGen.ClearAll();
-
-            foreach (WaterObject w in FishCaught)
-            {
-                Destroy(w.gameObject.transform.parent.gameObject);
-            }
-
-            FishCaught.Clear();
+            UI.SetRecords(HighScore.ToString(), DepthRecord.ToString());
         }
     }
 
-    private void SwitchToTop()
-    {
-        GameState = GameplayState.BackToTop;
-        Debug.Log("score: " + PlayerScore);
-    }
+
 
     private void SetScoreUI()
     {
-        UIScore.text = ((int)PlayerScore).ToString();
+        UI.SetScore(PlayerScore);
     }
 
     private void SetDepthUI()
     {
-        if (Depth != CurrentDepthDisplay)
-        {
-            CurrentDepthDisplay = (int)Depth;
-            UIDepth.text = CurrentDepthDisplay.ToString() + "m";
-        }
+        UI.SetDepth((int)Depth);
     }
 
     private void GenerateSchool(SchoolType t)
     {
+        //debug
+        //t = SchoolType.Mixer;
         switch (t)
         {
             case SchoolType.SwimmingV: //swimming V (random direction and v direction, random speed and type too)
                 { //brackets for scope
-                    WaterObjectType randomType = GetRandomSchoolType();
+                    WaterObjectType randomType = GetRandomType(true);
                     float randomSpeed = WaterObject.GetRandomFishSpeed(randomType);
                     float randomX = Random.Range(0f, ScreenBoundWorldX);
                     int randomDirection = Random.Range(0, 2);
@@ -507,7 +630,7 @@ public class GameplayManager : MonoBehaviour
 
             case SchoolType.SliceNDice: //Slice N Dice (three fish, middle spawn other direction at other side, fast)
                 {
-                    WaterObjectType randomType = GetRandomSchoolType();
+                    WaterObjectType randomType = GetRandomType(true);
                     float randomSpeed = WaterObject.GetRandomFishSpeed(randomType) * 2;
                     int randomDirection = Random.Range(0, 2);
                     if (randomDirection == 0) randomDirection = -1;
@@ -523,46 +646,165 @@ public class GameplayManager : MonoBehaviour
                         wo.School = SliceNDice;
                     }
 
-                    SliceNDice[0].transform.localPosition = new Vector3(randomDirection * randomX * randomDirection, -(Depth + GenerateDistance - GoodFishDist + randomYBuffer), 0);
+                    SliceNDice[0].transform.localPosition = new Vector3(randomX * randomDirection, -(Depth + GenerateDistance - GoodFishDist + randomYBuffer), 0);
                     SliceNDice[0].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection == 1);
                     SliceNDice[0].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
 
-                    SliceNDice[1].transform.localPosition = new Vector3(randomDirection * randomX * -randomDirection, -(Depth + GenerateDistance + randomYBuffer), 0);
+                    SliceNDice[1].transform.localPosition = new Vector3(randomX * -randomDirection, -(Depth + GenerateDistance + randomYBuffer), 0);
                     SliceNDice[1].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection != 1);
                     SliceNDice[1].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
 
-                    SliceNDice[2].transform.localPosition = new Vector3(randomDirection * randomX * randomDirection, -(Depth + GenerateDistance + GoodFishDist + randomYBuffer), 0);
+                    SliceNDice[2].transform.localPosition = new Vector3(randomX * randomDirection, -(Depth + GenerateDistance + GoodFishDist + randomYBuffer), 0);
                     SliceNDice[2].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection == 1);
                     SliceNDice[2].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
                 }
                 break;
 
+
+            case SchoolType.Diamond:
+                {
+                    WaterObjectType randomType = GetRandomType(true);
+                    float randomSpeed = WaterObject.GetRandomFishSpeed(randomType);
+                    float randomX = Random.Range(0f, ScreenBoundWorldX);
+                    int randomDirection = Random.Range(0, 2);
+                    if (randomDirection == 0) randomDirection = -1;
+                    Color randomColor = WaterObject.GetRandomFishColor(randomType);
+
+                    List<GameObject> Diamond = LevelGen.GetOrCreate(randomType, 4);
+                    foreach (GameObject go in Diamond)
+                    {
+                        WaterObject wo = go.GetComponentInChildren<WaterObject>();
+                        if (randomDirection == 1) wo.Facingleft = true;
+                        else wo.Facingleft = false;
+                        wo.fishSpeed = randomSpeed;
+                        wo.IsPartOfSchool = true;
+                        wo.SchoolSize = 4;
+                        wo.ObjColor = randomColor;
+                        wo.School = Diamond;
+                    }
+                    Diamond[0].transform.localPosition = new Vector3(randomDirection * randomX - (GoodFishDist*1.5f), -(Depth + GenerateDistance), 0);
+                    Diamond[1].transform.localPosition = new Vector3(randomDirection * randomX, -(Depth + GenerateDistance - (GoodFishDist*1.3f)), 0);
+                    Diamond[2].transform.localPosition = new Vector3(randomDirection * randomX, -(Depth + GenerateDistance + (GoodFishDist*1.3f)), 0);
+                    Diamond[3].transform.localPosition = new Vector3(randomDirection * randomX + (GoodFishDist*1.5f), -(Depth + GenerateDistance), 0);
+                    
+                }
+                break;
+
+            case SchoolType.Slant:
+                {
+                    WaterObjectType randomType = GetRandomType(true);
+                    float randomSpeed = WaterObject.GetRandomFishSpeed(randomType);
+                    float randomX = Random.Range(0f, ScreenBoundWorldX);
+                    int randomDirection = Random.Range(0, 2);
+                    if (randomDirection == 0) randomDirection = -1;
+                    int randomSpreadDirection = Random.Range(0, 2);
+                    if (randomSpreadDirection == 0) randomSpreadDirection = -1;
+                    List<GameObject> SlantFish = LevelGen.GetOrCreate(randomType, 3);
+                    foreach (GameObject go in SlantFish)
+                    {
+                        WaterObject wo = go.GetComponentInChildren<WaterObject>();
+                        if (randomDirection == 1) wo.Facingleft = true;
+                        else wo.Facingleft = false;
+                        wo.fishSpeed = randomSpeed;
+                        wo.IsPartOfSchool = true;
+                        wo.SchoolSize = 3;
+                        wo.School = SlantFish;
+                    }
+                    SlantFish[0].transform.localPosition = new Vector3(randomDirection * randomX, -(Depth + GenerateDistance - GoodFishDist * 2), 0);
+                    SlantFish[1].transform.localPosition = new Vector3(randomDirection * randomX + (2f * randomSpreadDirection), -(Depth + GenerateDistance - GoodFishDist), 0);
+                    SlantFish[2].transform.localPosition = new Vector3(randomDirection * randomX + (4f * randomSpreadDirection), -(Depth + GenerateDistance), 0);
+                }
+                break;
+
+            case SchoolType.Mixer:
+                {
+                    WaterObjectType randomType = GetRandomType(true);
+                    float randomSpeed = WaterObject.GetRandomFishSpeed(randomType) * 1.5f;
+                    Color randomColor = WaterObject.GetRandomFishColor(randomType);
+                    int randomDirection = Random.Range(0, 2);
+                    if (randomDirection == 0) randomDirection = -1;
+                    float randomYBuffer = Random.Range(0f, 4.0f);
+                    float randomX = Random.Range(-ScreenBoundWorldX/2.0f, ScreenBoundWorldX/2.0f);
+                    List<GameObject> Mixer = LevelGen.GetOrCreate(randomType, 5);
+                    foreach (GameObject go in Mixer)
+                    {
+                        WaterObject wo = go.GetComponentInChildren<WaterObject>();
+                        wo.fishSpeed = randomSpeed;
+                        wo.IsPartOfSchool = true;
+                        wo.SchoolSize = 5;
+                        wo.ObjColor = randomColor;
+                        wo.School = Mixer;
+                    }
+
+                    Mixer[0].transform.localPosition = new Vector3(randomX , -(Depth + GenerateDistance - (GoodFishDist*2) + randomYBuffer), 0);
+                    Mixer[0].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection == 1);
+                    Mixer[0].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
+
+                    Mixer[1].transform.localPosition = new Vector3(randomX - 4f, -(Depth + GenerateDistance - GoodFishDist + randomYBuffer), 0);
+                    Mixer[1].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection != 1);
+                    Mixer[1].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
+
+                    Mixer[2].transform.localPosition = new Vector3(randomX , -(Depth + GenerateDistance + randomYBuffer), 0);
+                    Mixer[2].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection == 1);
+                    Mixer[2].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
+
+                    Mixer[3].transform.localPosition = new Vector3(randomX + 4f, -(Depth + GenerateDistance + GoodFishDist + randomYBuffer), 0);
+                    Mixer[3].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection != 1);
+                    Mixer[3].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
+
+                    Mixer[4].transform.localPosition = new Vector3(randomX, -(Depth + GenerateDistance + (GoodFishDist*2) + randomYBuffer), 0);
+                    Mixer[4].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection == 1);
+                    Mixer[4].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
+                }
+                break;
         }
     }
 
     private void SetOddsByDepth()
     {
         if (Depth < DepthGoalSectionLength * 2)
-            SetRandomOdds(.8f, .2f, 0f);
+            SetRandomOdds(.75f, .25f, .0f, .0f, 0f, 0f, 0f, 0f, 0f);
         else if (Depth < DepthGoalSectionLength * 3)
-            SetRandomOdds(.7f, .2f, .1f);
+            SetRandomOdds(.50f, .30f, .20f, .0f, 0f, 0f, 0f, 0f, 0f);
         else if (Depth < DepthGoalSectionLength * 4)
-            SetRandomOdds(.65f, .25f, .1f);
+            SetRandomOdds(.3f, .3f, .3f, .0f, 0f, 0f, 0f, .1f, 0f);
         else if (Depth < DepthGoalSectionLength * 5)
-            SetRandomOdds(.6f, .25f, .15f);
+            SetRandomOdds(.1f, .25f, .25f, .25f, 0f, 0f, 0f, .15f, 0f);
         else if (Depth < DepthGoalSectionLength * 6)
-            SetRandomOdds(.5f, .35f, .15f);
+            SetRandomOdds(.1f, .1f, .2f, .4f, 0f, 0f, 0f, .2f, 0f);
         else if (Depth < DepthGoalSectionLength * 7)
-            SetRandomOdds(.4f, .4f, .2f);
+            SetRandomOdds(.1f, .2f, .2f, .1f, .3f, 0f, 0f, .1f, 0f);
         else if (Depth < DepthGoalSectionLength * 8)
-            SetRandomOdds(.35f, .45f, .2f);
+            SetRandomOdds(.1f, .2f, .1f, .1f, .2f, .2f, 0f, .1f, 0f);
+        else if (Depth < DepthGoalSectionLength * 9)
+            SetRandomOdds(0f, .2f, .1f, .1f, .2f, .3f, 0f, .1f, 0f);
+        else if (Depth < DepthGoalSectionLength * 10)
+            SetRandomOdds(0f, .1f, .1f, .1f, .1f, .2f, .1f, .1f, .2f);
+        else if (Depth < DepthGoalSectionLength * 11)
+            SetRandomOdds(0f, .1f, .1f, .1f, .1f, .3f, .1f, .05f, .15f);
+        else if (Depth < DepthGoalSectionLength * 12)
+            SetRandomOdds(0f, 0f, .1f, .1f, .2f, .3f, .2f, .05f, .05f);
+        else if (Depth < DepthGoalSectionLength * 13)
+            SetRandomOdds(0f, 0f, 0f, .1f, 0f, .6f, .1f, .05f, .15f);
+        else if (Depth < DepthGoalSectionLength * 14)
+            SetRandomOdds(0f, 0f, 0f, .05f, .05f, .1f, .2f, .3f, .3f);
+        else if (Depth < DepthGoalSectionLength * 15)
+            SetRandomOdds(.05f, .05f, .05f, .05f, .2f, .2f, .2f, .1f, .1f);
+        //go till at least 15
     }
 
-    private void SetRandomOdds(float type1, float type2, float boot)
+    private void SetRandomOdds(float AngelFish, float Trout, float Puffer, float Eel, float Jellyfish,
+        float Shark, float Swordfish, float Boot, float Tire)
     { //must add up to 1
-        OddsType1 = type1;
-        OddsType2 = type2;
-        OddsBoot = boot;
+        GenOdds[(int)WaterObjectType.Angelfish] = AngelFish;
+        GenOdds[(int)WaterObjectType.Eel] = Eel;
+        GenOdds[(int)WaterObjectType.Jellyfish] = Jellyfish;
+        GenOdds[(int)WaterObjectType.Puffer] = Puffer;
+        GenOdds[(int)WaterObjectType.Shark] = Shark;
+        GenOdds[(int)WaterObjectType.Swordfish] = Swordfish;
+        GenOdds[(int)WaterObjectType.Trout] = Trout;
+        GenOdds[(int)WaterObjectType.Tire] = Tire;
+        GenOdds[(int)WaterObjectType.Boot] = Boot;
         //if (float.Equals((type1 + type2 + boot + barrel),1.0f)) Debug.Log("**Bad Odds = "+ (type1 + type2 + boot + barrel) + " **");
     }
 
@@ -572,32 +814,71 @@ public class GameplayManager : MonoBehaviour
         SetScoreUI();
     }
 
-    private WaterObjectType GetRandomType()
+    private WaterObjectType GetRandomType(bool SchoolOnly)
     {
-        float rnd = Random.Range(0f, 1.0f);
+        float rnd;
+        if (SchoolOnly) rnd = Random.Range(0f, 1.0f);
+        else rnd = Random.RandomRange(0,
+            (1.0f - GenOdds[(int)WaterObjectType.Boot] - GenOdds[(int)WaterObjectType.Tire] - GenOdds[(int)WaterObjectType.Jellyfish]));
 
-        if (rnd < OddsType1)
-            return WaterObjectType.FishType1;
-        else if (rnd < OddsType1 + OddsType2)
-            return WaterObjectType.FishType2;
-        else if (rnd < OddsType1 + OddsType2 + OddsBoot)
+        if (rnd < GenOdds[(int)WaterObjectType.Angelfish])
+            return WaterObjectType.Angelfish;
+        else if (rnd <
+            (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout]))
+            return WaterObjectType.Trout;
+        else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout] +
+            GenOdds[(int)WaterObjectType.Eel]))
+            return WaterObjectType.Eel;
+        else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout] +
+            GenOdds[(int)WaterObjectType.Eel] +
+            GenOdds[(int)WaterObjectType.Swordfish]))
+            return WaterObjectType.Swordfish;
+        else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout] +
+            GenOdds[(int)WaterObjectType.Eel] +
+            GenOdds[(int)WaterObjectType.Swordfish] +
+            GenOdds[(int)WaterObjectType.Puffer]))
+            return WaterObjectType.Puffer;
+        else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout] +
+            GenOdds[(int)WaterObjectType.Eel] +
+            GenOdds[(int)WaterObjectType.Swordfish] +
+            GenOdds[(int)WaterObjectType.Puffer] +
+            GenOdds[(int)WaterObjectType.Shark]))
+            return WaterObjectType.Shark;
+        else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout] +
+            GenOdds[(int)WaterObjectType.Eel] +
+            GenOdds[(int)WaterObjectType.Swordfish] +
+            GenOdds[(int)WaterObjectType.Puffer] +
+            GenOdds[(int)WaterObjectType.Shark] +
+            GenOdds[(int)WaterObjectType.Jellyfish]))
+            return WaterObjectType.Jellyfish;
+        else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout] +
+            GenOdds[(int)WaterObjectType.Eel] +
+            GenOdds[(int)WaterObjectType.Swordfish] +
+            GenOdds[(int)WaterObjectType.Puffer] +
+            GenOdds[(int)WaterObjectType.Shark] +
+            GenOdds[(int)WaterObjectType.Jellyfish] +
+            GenOdds[(int)WaterObjectType.Tire]))
+            return WaterObjectType.Tire;
+        else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
+            GenOdds[(int)WaterObjectType.Trout] +
+            GenOdds[(int)WaterObjectType.Eel] +
+            GenOdds[(int)WaterObjectType.Swordfish] +
+            GenOdds[(int)WaterObjectType.Puffer] +
+            GenOdds[(int)WaterObjectType.Shark] +
+            GenOdds[(int)WaterObjectType.Jellyfish] +
+            GenOdds[(int)WaterObjectType.Tire] +
+            GenOdds[(int)WaterObjectType.Boot]))
             return WaterObjectType.Boot;
 
         Debug.Log("problem with random");
-        return WaterObjectType.FishType1;
-    }
-
-    private WaterObjectType GetRandomSchoolType()
-    {
-        float rnd = Random.Range(0f, OddsType1 + OddsType2);
-
-        if (rnd < OddsType1)
-            return WaterObjectType.FishType1;
-        else if (rnd < OddsType1 + OddsType2)
-            return WaterObjectType.FishType2;
-
-        Debug.Log("problem with random");
-        return WaterObjectType.FishType1;
+        return WaterObjectType.Angelfish;
     }
 
     private void HandleKeyboardInput()
@@ -612,6 +893,23 @@ public class GameplayManager : MonoBehaviour
         { //swing right
             HookObject.rigidbody.AddForce(60 * Time.deltaTime, 0, 0);
         }
+
+        if ((Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.Space))
+            && RechargePercentage >= .3f)
+        {
+            Boosting = true;
+            BoostTimer = BoostTimeLimit * RechargePercentage;
+            //RechargeTimer = 0;
+        }
+
+        if (Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.Space))
+        {
+            if (Boosting)
+            {
+                Boosting = false;
+                RechargeTimer = RechargePercentage * RechargeTime;
+            }
+        }
     }
 
     private void HandleMouseInput()
@@ -624,5 +922,10 @@ public class GameplayManager : MonoBehaviour
             Mathf.Clamp(HookObject.transform.localPosition.x + mouseXAdjusted, -ScreenBoundWorldX, ScreenBoundWorldX),
             HookObject.transform.localPosition.y,
             HookObject.transform.localPosition.z);
+    }
+
+    public GameplayState GetGamestate()
+    {
+        return GameState;
     }
 }

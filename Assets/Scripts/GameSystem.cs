@@ -20,13 +20,4 @@ public class GameSystem : MonoBehaviour
 
     public GameplayManager GameManager;
 
-    //public void Awake()
-    //{
-
-    //}
-
-    //public void Update()
-    //{
-
-    //}
 }
