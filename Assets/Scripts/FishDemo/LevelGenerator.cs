@@ -67,11 +67,11 @@ public class LevelGenerator
                 break;
 
             case WaterObjectType.Tire:
-                PrefabToGet = PrefabAngelfish;
+                PrefabToGet = PrefabTire;
                 break;
 
             case WaterObjectType.Boot:
-                PrefabToGet = PrefabAngelfish;
+                PrefabToGet = PrefabBoot;
                 break;
 
             default:

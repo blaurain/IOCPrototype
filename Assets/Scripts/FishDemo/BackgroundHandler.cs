@@ -12,8 +12,13 @@ public enum WaveMotion
 public class BackgroundHandler : MonoBehaviour
 {
     public GameObject CameraGO;
+    public GameObject Fisherman;
+    public GameObject LineAnchor;
+    public RageSpline Line;
     public GameObject[] Waves;
     private WaveMotion CurrentMotion;
+    private const float FishermanBobSpeed = .2f;
+    private const float FishermanRotationSpeed = 1.2f;
     private readonly Vector3 TopPosition = new Vector3(-12.0f, 40.0f, -10);
     private const float TopZoom = 20f;
     private readonly Vector3 StartPosition = new Vector3(0, 1, -10);
@@ -56,6 +61,12 @@ public class BackgroundHandler : MonoBehaviour
                 ToMoveOdds = new Vector3(
                     WaveMoveSpeedX * -WaveMoveDirection * Time.deltaTime,
                     WaveMoveSpeedY * WaveMoveDirection * Time.deltaTime, 0);
+
+                Fisherman.transform.Rotate(new Vector3(0, 0, 1), -FishermanRotationSpeed * Time.deltaTime);
+                Fisherman.transform.localPosition = new Vector3(
+                    Fisherman.transform.localPosition.x,
+                    Fisherman.transform.localPosition.y + (FishermanBobSpeed * Time.deltaTime),
+                    Fisherman.transform.localPosition.z);
                 break;
 
             case WaveMotion.UpLeft:
@@ -66,6 +77,11 @@ public class BackgroundHandler : MonoBehaviour
                 ToMoveOdds = new Vector3(
                     WaveMoveSpeedX * WaveMoveDirection * Time.deltaTime,
                     WaveMoveSpeedY * WaveMoveDirection * Time.deltaTime, 0);
+                Fisherman.transform.Rotate(new Vector3(0, 0, 1), FishermanRotationSpeed * Time.deltaTime);
+                Fisherman.transform.localPosition = new Vector3(
+                    Fisherman.transform.localPosition.x,
+                    Fisherman.transform.localPosition.y + (FishermanBobSpeed * Time.deltaTime),
+                    Fisherman.transform.localPosition.z);
                 break;
 
             case WaveMotion.DownRight:
@@ -76,6 +92,11 @@ public class BackgroundHandler : MonoBehaviour
                 ToMoveOdds = new Vector3(
                     WaveMoveSpeedX * -WaveMoveDirection * Time.deltaTime,
                     WaveMoveSpeedY * -WaveMoveDirection * Time.deltaTime, 0);
+                Fisherman.transform.Rotate(new Vector3(0, 0, 1), -FishermanRotationSpeed * Time.deltaTime);
+                Fisherman.transform.localPosition = new Vector3(
+                    Fisherman.transform.localPosition.x,
+                    Fisherman.transform.localPosition.y - (FishermanBobSpeed * Time.deltaTime),
+                    Fisherman.transform.localPosition.z);
                 break;
 
             case WaveMotion.DownLeft:
@@ -86,15 +107,20 @@ public class BackgroundHandler : MonoBehaviour
                 ToMoveOdds = new Vector3(
                     WaveMoveSpeedX * WaveMoveDirection * Time.deltaTime,
                     WaveMoveSpeedY * -WaveMoveDirection * Time.deltaTime, 0);
+                Fisherman.transform.Rotate(new Vector3(0, 0, 1), FishermanRotationSpeed * Time.deltaTime);
+                Fisherman.transform.localPosition = new Vector3(
+                    Fisherman.transform.localPosition.x,
+                    Fisherman.transform.localPosition.y - (FishermanBobSpeed * Time.deltaTime),
+                    Fisherman.transform.localPosition.z);
                 break;
 
             default:
                 ToMoveEvens = Vector3.zero;
                 ToMoveOdds = Vector3.zero;
                 Debug.Log("problem with waves");
+
                 break;
         }
-
 
         float movePercentage = 1f;
         for (int i = Waves.Length - 1; i >= 0; i--)
@@ -116,6 +142,9 @@ public class BackgroundHandler : MonoBehaviour
 
             movePercentage -= WaveMovePercentageFalloff;
         }
+
+        Line.SetPointWorldSpace(0, LineAnchor.transform.position);
+        Line.RefreshMesh();
 
         WaveTimer += Time.deltaTime;
         if (WaveTimer >= WaveMoveTime)

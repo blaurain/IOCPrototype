@@ -22,7 +22,8 @@ public enum BillyColors
     FishYellow,
     LightBlue,
     DarkRed,
-    DarkGrey
+    DarkGrey,
+    DarkBrown
 }    
 
 public enum WObjState
@@ -38,10 +39,13 @@ public class WaterObject : MonoBehaviour
 {
     public static int NumberOfFishTypes = 9;
     public WaterObjectType ObjType; //set on prefab
+    private float FishSize;
+    private bool FishSizeGot;
     private bool isFish;
     private bool isCaught;
     private bool isHookedLeftSide;
     private const float FishSlowBase = 10f;
+    private const float FishMedSlowBase = 12f;
     private const float FishMediumBase = 14f;
     private const float FishFastBase = 16f;
     private const float FishSuperFastBase = 20f;
@@ -124,13 +128,19 @@ public class WaterObject : MonoBehaviour
         set
         {
             isFacingLeft = value;
-            if (value) gameObject.transform.localScale = new Vector3(1, 1, 1);
-            else gameObject.transform.localScale = new Vector3(-1, 1, 1);
+            if (!FishSizeGot)
+            {
+                FishSize = Mathf.Abs(gameObject.transform.localScale.x);
+                FishSizeGot = true;
+            }
+            if (value) gameObject.transform.localScale = new Vector3(FishSize, FishSize, 1f);
+            else gameObject.transform.localScale = new Vector3(-FishSize, FishSize, 1f);
         }
     }
 
     public void Awake()
     {
+        FishSizeGot = false;
         switch (ObjType)
         {
             case WaterObjectType.Angelfish:
@@ -332,34 +342,30 @@ public class WaterObject : MonoBehaviour
         switch (t)
         {
             case WaterObjectType.Angelfish:
-                return Random.Range(FishMediumBase / 2, FishMediumBase);
+                return Random.Range(FishMedSlowBase / 2, FishMedSlowBase);
 
             case WaterObjectType.Eel:
-                return Random.Range(FishMediumBase / 2, FishMediumBase);
-
-            case WaterObjectType.Jellyfish:
-                return Random.Range(FishMediumBase / 2, FishMediumBase);
+                return Random.Range(FishSlowBase / 2, FishSlowBase);
 
             case WaterObjectType.Puffer:
-                return Random.Range(FishMediumBase / 2, FishMediumBase);
+                return Random.Range(FishSlowBase / 2, FishSlowBase);
 
             case WaterObjectType.Shark:
-                return Random.Range(FishMediumBase / 2, FishMediumBase);
+                return Random.Range(FishSlowBase, FishFastBase);
 
             case WaterObjectType.Swordfish:
-                return Random.Range(FishMediumBase / 2, FishMediumBase);
+                return Random.Range(FishSlowBase, FishFastBase);
             
             case WaterObjectType.Trout:
                 return Random.Range(FishMediumBase / 2, FishMediumBase);
 
+            case WaterObjectType.Jellyfish:
             case WaterObjectType.Tire:
             case WaterObjectType.Boot:
             default:
                 return 0;
         }
     }
-
-    
 
     public static Color GetBillyColor(BillyColors c)
     {
@@ -377,7 +383,9 @@ public class WaterObject : MonoBehaviour
             case BillyColors.LimeGreen:
                 return ToColor(105, 195, 105); //lime green\
             case BillyColors.DarkGrey:
-                return ToColor(98, 98, 98);
+                return ToColor(116, 116, 116);
+            case BillyColors.DarkBrown:
+                return ToColor(96, 83, 64);
             default:
             case BillyColors.BurntOrange:
                 return ToColor(167, 79, 0); //burnt orange
@@ -408,7 +416,7 @@ public class WaterObject : MonoBehaviour
                     BillyColors.FishYellow);
 
             case WaterObjectType.Shark:
-                return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink);
+                return ChooseRandomlyBetween(BillyColors.DarkBrown, BillyColors.DarkGrey);
 
             case WaterObjectType.Swordfish:
                 return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,

@@ -25,7 +25,8 @@ public class GameplayManager : MonoBehaviour
     private const float MouseMoveLimit = 5;
     private const float KeyMovementSpeed = 50;
 
-    private readonly Vector3 HookOffScreenPosition = new Vector3(0, 30, 0);
+    private readonly Vector3 HookOffScreenPosition = new Vector3(0, 38, 0);
+    private readonly Vector3 HookPreOffScreenPosition = new Vector3(0, 25, 0);
     private readonly Vector3 HookUpperPosition = new Vector3(0, 10, 0);
     private readonly Vector3 HookLowerPosition = new Vector3(0, -10, 0);
 
@@ -47,20 +48,24 @@ public class GameplayManager : MonoBehaviour
     private Stack<WaterObjectInstance> FishStackz = new Stack<WaterObjectInstance>();
     private List<WaterObject> FishCaught = new List<WaterObject>();
     private WaterObjectInstance NextFish;
+    private int[] FishCaughtCount;
 
-    private const float GenerateDistance = 30;
-    private const float GenTimerBaseMax = 2f;
+    private const float GenerateDistance = 40;
+    private const float GenTimerBaseMax = 1.6f;
     private const float GenTimerLowestMax = .5f;
-    private const float GenTimerBaseMin = .2f;
-    private const float GenTimerIncrement = .2f;
-    private const float SchoolGenBaseMax = 6f;
-    private const float SchoolGenBaseMin = 1f;
-    private const float GoodFishDist = 3f;
+    private const float GenTimerSchoolLowestMax = 4f;
+    private const float GenTimerBaseMin = .3f;
+    private const float GenTimerIncrement = .1f;
+    private const float GenTimerSchoolIncrement = .05f;
+    private const float SchoolGenBaseMax = 8f;
+    private const float SchoolGenBaseMin = 2f;
+    private const float GoodFishDist = 4f;
     private const float DepthGoalSectionLength = 100f;
     private float SchoolGenTimer;
     private bool FishLeftToGen;
     private float GenTimer;
     private float GenTimerAdjustment;
+    private float GenTimerSchoolAdjustment;
     private float GenNextSpawnTime;
     private float SchoolGenNextSpawnTime;
     private float[] GenOdds;
@@ -147,7 +152,7 @@ public class GameplayManager : MonoBehaviour
         //StartGame();
         GameState = GameplayState.AtTop;
         GenOdds = new float[WaterObject.NumberOfFishTypes];
-
+        FishCaughtCount = new int[WaterObject.NumberOfFishTypes];
     }
 
     public void Update()
@@ -265,7 +270,7 @@ public class GameplayManager : MonoBehaviour
         RechargePercentage = 0;
         FishCaught.Clear();
         CurrentScrollSpeed = ScrollSpeedStart;
-        HookObject.transform.localPosition = new Vector3(0, HookOffScreenPosition.y, 0);
+        HookObject.transform.localPosition = new Vector3(0, HookPreOffScreenPosition.y, 0);
         GenNextSpawnTime = Random.Range(GenTimerBaseMin, GenTimerBaseMax);
         NextDepthGoal = DepthGoalSectionLength;
         SetOddsByDepth();
@@ -286,6 +291,8 @@ public class GameplayManager : MonoBehaviour
         GameState = GameplayState.AtTop;
         UI.SetUpTopMenu(true);
 
+        CountFish();
+
         //take care of fish
         LevelGen.ClearAll();
         foreach (WaterObject w in FishCaught)
@@ -294,6 +301,23 @@ public class GameplayManager : MonoBehaviour
         }
 
         FishCaught.Clear();
+    }
+
+    private void CountFish()
+    {
+        foreach (WaterObject w in FishCaught)
+        {
+            FishCaughtCount[(int)w.ObjType]++;
+        }
+        UI.SetFishCount(FishCaughtCount[(int)WaterObjectType.Angelfish],
+            FishCaughtCount[(int)WaterObjectType.Trout],
+            FishCaughtCount[(int)WaterObjectType.Puffer],
+            FishCaughtCount[(int)WaterObjectType.Eel],
+            FishCaughtCount[(int)WaterObjectType.Jellyfish],
+            FishCaughtCount[(int)WaterObjectType.Shark],
+            FishCaughtCount[(int)WaterObjectType.Swordfish],
+            FishCaughtCount[(int)WaterObjectType.Boot],
+            FishCaughtCount[(int)WaterObjectType.Tire]);
     }
 
     private void ReelDone()
@@ -319,17 +343,30 @@ public class GameplayManager : MonoBehaviour
 
     private bool RaiseAnchorOffScreen()
     {
-        HookObject.transform.localPosition = new Vector3(
-            HookObject.transform.localPosition.x,
-            HookObject.transform.localPosition.y + (CurrentScrollSpeed * Time.deltaTime),
-            HookOffScreenPosition.z);
-
-        if (HookObject.transform.localPosition.y >= HookOffScreenPosition.y)
+        if (HookObject.transform.localPosition.y < HookOffScreenPosition.y)
         {
-            HookObject.transform.localPosition = HookOffScreenPosition;
+            HookObject.transform.localPosition = new Vector3(
+                HookObject.transform.localPosition.x,
+                HookObject.transform.localPosition.y + (CurrentScrollSpeed * Time.deltaTime),
+                HookOffScreenPosition.z);
+
+            if (HookObject.transform.localPosition.y >= HookOffScreenPosition.y)
+            { //at very top now
+                HookObject.transform.localPosition = HookOffScreenPosition;
+                return true;
+            }
+            else
+            { //check if were far enough to move on
+                if (HookObject.transform.localPosition.y >= HookPreOffScreenPosition.y)
+                    return true;
+                else
+                    return false;
+            }
+         }
+        else
+        {
             return true;
         }
-        else return false;
     }
 
     public void PlayButtonHit()
@@ -337,6 +374,7 @@ public class GameplayManager : MonoBehaviour
         StartGame();
         //change UI
         UI.SetUpTopMenu(false);
+        HookObject.transform.localPosition = new Vector3(0, HookPreOffScreenPosition.y, 0);
     }
 
     public void DeadFishHere(WaterObject deadFish)
@@ -476,6 +514,9 @@ public class GameplayManager : MonoBehaviour
 
             if ((GenTimerBaseMax - GenTimerAdjustment) > GenTimerLowestMax)
                 GenTimerAdjustment += GenTimerIncrement;
+
+            if ((SchoolGenBaseMax - GenTimerSchoolAdjustment) > GenTimerSchoolLowestMax)
+                GenTimerSchoolAdjustment += GenTimerSchoolIncrement;
         }
     }
 
@@ -621,9 +662,9 @@ public class GameplayManager : MonoBehaviour
                         wo.School = swimmingV;
                     }
                     swimmingV[0].transform.localPosition = new Vector3(randomDirection * randomX, -(Depth + GenerateDistance - GoodFishDist * 2), 0);
-                    swimmingV[1].transform.localPosition = new Vector3(randomDirection * randomX + (2f * randomSpreadDirection), -(Depth + GenerateDistance - GoodFishDist), 0);
-                    swimmingV[2].transform.localPosition = new Vector3(randomDirection * randomX + (4f * randomSpreadDirection), -(Depth + GenerateDistance), 0);
-                    swimmingV[3].transform.localPosition = new Vector3(randomDirection * randomX + (2f * randomSpreadDirection), -(Depth + GenerateDistance + GoodFishDist), 0);
+                    swimmingV[1].transform.localPosition = new Vector3(randomDirection * randomX + (GoodFishDist * randomSpreadDirection), -(Depth + GenerateDistance - GoodFishDist), 0);
+                    swimmingV[2].transform.localPosition = new Vector3(randomDirection * randomX + (GoodFishDist*2 * randomSpreadDirection), -(Depth + GenerateDistance), 0);
+                    swimmingV[3].transform.localPosition = new Vector3(randomDirection * randomX + (GoodFishDist * randomSpreadDirection), -(Depth + GenerateDistance + GoodFishDist), 0);
                     swimmingV[4].transform.localPosition = new Vector3(randomDirection * randomX, -(Depth + GenerateDistance + GoodFishDist * 2), 0);
                 }
                 break;
@@ -711,8 +752,8 @@ public class GameplayManager : MonoBehaviour
                         wo.School = SlantFish;
                     }
                     SlantFish[0].transform.localPosition = new Vector3(randomDirection * randomX, -(Depth + GenerateDistance - GoodFishDist * 2), 0);
-                    SlantFish[1].transform.localPosition = new Vector3(randomDirection * randomX + (2f * randomSpreadDirection), -(Depth + GenerateDistance - GoodFishDist), 0);
-                    SlantFish[2].transform.localPosition = new Vector3(randomDirection * randomX + (4f * randomSpreadDirection), -(Depth + GenerateDistance), 0);
+                    SlantFish[1].transform.localPosition = new Vector3(randomDirection * randomX + (GoodFishDist * randomSpreadDirection), -(Depth + GenerateDistance - GoodFishDist), 0);
+                    SlantFish[2].transform.localPosition = new Vector3(randomDirection * randomX + (GoodFishDist*2 * randomSpreadDirection), -(Depth + GenerateDistance), 0);
                 }
                 break;
 
@@ -740,7 +781,7 @@ public class GameplayManager : MonoBehaviour
                     Mixer[0].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection == 1);
                     Mixer[0].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
 
-                    Mixer[1].transform.localPosition = new Vector3(randomX - 4f, -(Depth + GenerateDistance - GoodFishDist + randomYBuffer), 0);
+                    Mixer[1].transform.localPosition = new Vector3(randomX - GoodFishDist, -(Depth + GenerateDistance - GoodFishDist + randomYBuffer), 0);
                     Mixer[1].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection != 1);
                     Mixer[1].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
 
@@ -748,7 +789,7 @@ public class GameplayManager : MonoBehaviour
                     Mixer[2].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection == 1);
                     Mixer[2].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
 
-                    Mixer[3].transform.localPosition = new Vector3(randomX + 4f, -(Depth + GenerateDistance + GoodFishDist + randomYBuffer), 0);
+                    Mixer[3].transform.localPosition = new Vector3(randomX + GoodFishDist, -(Depth + GenerateDistance + GoodFishDist + randomYBuffer), 0);
                     Mixer[3].GetComponentInChildren<WaterObject>().Facingleft = (randomDirection != 1);
                     Mixer[3].GetComponentInChildren<WaterObject>().fishSpeed = randomSpeed;
 
@@ -779,15 +820,15 @@ public class GameplayManager : MonoBehaviour
         else if (Depth < DepthGoalSectionLength * 9)
             SetRandomOdds(0f, .2f, .1f, .1f, .2f, .3f, 0f, .1f, 0f);
         else if (Depth < DepthGoalSectionLength * 10)
-            SetRandomOdds(0f, .1f, .1f, .1f, .1f, .2f, .1f, .1f, .2f);
+            SetRandomOdds(.05f, .1f, .05f, .1f, .1f, .2f, .1f, .1f, .2f);
         else if (Depth < DepthGoalSectionLength * 11)
-            SetRandomOdds(0f, .1f, .1f, .1f, .1f, .3f, .1f, .05f, .15f);
+            SetRandomOdds(.05f, .05f, .1f, .1f, .1f, .2f, .2f, .05f, .15f);
         else if (Depth < DepthGoalSectionLength * 12)
-            SetRandomOdds(0f, 0f, .1f, .1f, .2f, .3f, .2f, .05f, .05f);
+            SetRandomOdds(.05f, .05f, .1f, .1f, .2f, .2f, .2f, .05f, .05f);
         else if (Depth < DepthGoalSectionLength * 13)
-            SetRandomOdds(0f, 0f, 0f, .1f, 0f, .6f, .1f, .05f, .15f);
+            SetRandomOdds(.1f, .1f, .1f, .1f, .1f, .2f, .1f, .05f, .15f);
         else if (Depth < DepthGoalSectionLength * 14)
-            SetRandomOdds(0f, 0f, 0f, .05f, .05f, .1f, .2f, .3f, .3f);
+            SetRandomOdds(.05f, .05f, .05f, .05f, .05f, .1f, .15f, .2f, .3f);
         else if (Depth < DepthGoalSectionLength * 15)
             SetRandomOdds(.05f, .05f, .05f, .05f, .2f, .2f, .2f, .1f, .1f);
         //go till at least 15
@@ -817,9 +858,11 @@ public class GameplayManager : MonoBehaviour
     private WaterObjectType GetRandomType(bool SchoolOnly)
     {
         float rnd;
-        if (SchoolOnly) rnd = Random.Range(0f, 1.0f);
+        if (!SchoolOnly) rnd = Random.Range(0f, 1.0f);
         else rnd = Random.RandomRange(0,
-            (1.0f - GenOdds[(int)WaterObjectType.Boot] - GenOdds[(int)WaterObjectType.Tire] - GenOdds[(int)WaterObjectType.Jellyfish]));
+            (1.0f - GenOdds[(int)WaterObjectType.Boot] - GenOdds[(int)WaterObjectType.Tire] 
+            - GenOdds[(int)WaterObjectType.Jellyfish] - GenOdds[(int)WaterObjectType.Shark]
+            - GenOdds[(int)WaterObjectType.Swordfish]));
 
         if (rnd < GenOdds[(int)WaterObjectType.Angelfish])
             return WaterObjectType.Angelfish;
@@ -834,14 +877,14 @@ public class GameplayManager : MonoBehaviour
         else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
             GenOdds[(int)WaterObjectType.Trout] +
             GenOdds[(int)WaterObjectType.Eel] +
-            GenOdds[(int)WaterObjectType.Swordfish]))
-            return WaterObjectType.Swordfish;
+            GenOdds[(int)WaterObjectType.Puffer]))
+            return WaterObjectType.Puffer;
         else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
             GenOdds[(int)WaterObjectType.Trout] +
             GenOdds[(int)WaterObjectType.Eel] +
-            GenOdds[(int)WaterObjectType.Swordfish] +
-            GenOdds[(int)WaterObjectType.Puffer]))
-            return WaterObjectType.Puffer;
+            GenOdds[(int)WaterObjectType.Puffer] +
+            GenOdds[(int)WaterObjectType.Swordfish]))
+            return WaterObjectType.Swordfish;
         else if (rnd < (GenOdds[(int)WaterObjectType.Angelfish] +
             GenOdds[(int)WaterObjectType.Trout] +
             GenOdds[(int)WaterObjectType.Eel] +
@@ -909,6 +952,11 @@ public class GameplayManager : MonoBehaviour
                 Boosting = false;
                 RechargeTimer = RechargePercentage * RechargeTime;
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow) && GameState == GameplayState.AtTop)
+        {
+            PlayButtonHit();
         }
     }
 

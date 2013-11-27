@@ -3,6 +3,7 @@ using System.Collections;
 
 public class GUIManager : MonoBehaviour
 {
+    public tk2dTextMesh UITitle;
     public tk2dTextMesh UIDepth;
     public tk2dTextMesh UIScore;
     public tk2dTextMesh UIHighScore;
@@ -10,6 +11,7 @@ public class GUIManager : MonoBehaviour
     public tk2dTextMesh UIDepthLabel;
     public tk2dTextMesh UIScoreLabel;
     public GameObject UIFishBox;
+    public tk2dTextMesh[] UIFishCount;
     public tk2dUIToggleControl UISoundOff;
     public tk2dUIToggleControl UISoundOn;
     public GameObject UIBoostFill;
@@ -23,6 +25,7 @@ public class GUIManager : MonoBehaviour
     public bool IsShowingSettings;
     public bool HighScorePulse;
     public bool DepthRecordPulse;
+    private bool FirstMenuDisplay = true;
     private int CurrentDepthDisplay;
     private const float PulseTime = .5f;
     private const float PulseSpeed = .2f;
@@ -115,6 +118,19 @@ public class GUIManager : MonoBehaviour
             }
         }
     }
+    public void SetFishCount(int cAngel, int cTrout, int cPuffer, int cEel, int cJelly, int cShark, int cSword, int cBoot, int cTire)
+    {
+        UIFishBox.SetActive(true);
+        UIFishCount[0].text = cAngel.ToString();
+        UIFishCount[1].text = cTrout.ToString();
+        UIFishCount[2].text = cPuffer.ToString();
+        UIFishCount[3].text = cEel.ToString();
+        UIFishCount[4].text = cJelly.ToString();
+        UIFishCount[5].text = cShark.ToString();
+        UIFishCount[6].text = cSword.ToString();
+        UIFishCount[7].text = cBoot.ToString();
+        UIFishCount[8].text = cTire.ToString();
+    }
 
     public void SetRechargeFill(float percentage)
     {
@@ -136,6 +152,7 @@ public class GUIManager : MonoBehaviour
         UIBoostFill.transform.parent.gameObject.SetActive(true);
         UIScoreLabel.transform.gameObject.SetActive(true);
         UIDepthLabel.transform.gameObject.SetActive(true);
+        FirstMenuDisplay = false;
     }
 
     public void SetUpTopMenu(bool ToTop)
@@ -143,8 +160,14 @@ public class GUIManager : MonoBehaviour
         PlayButton.gameObject.SetActive(ToTop);
         UIHighScore.gameObject.transform.parent.gameObject.SetActive(ToTop);
         UIDepthRecord.gameObject.transform.parent.gameObject.SetActive(ToTop);
-        UIInstructions.gameObject.SetActive(ToTop);
         SettingsButton.gameObject.SetActive(ToTop);
+        UITitle.gameObject.SetActive(ToTop);
+
+        if (!ToTop)
+        { //hide on the way out
+            if(FirstMenuDisplay) UIInstructions.gameObject.SetActive(ToTop);
+            else UIFishBox.SetActive(ToTop);
+        }
     }
 
     public void HideBoostFill()
@@ -182,19 +205,22 @@ public class GUIManager : MonoBehaviour
     {
         if (IsShowingSettings)
         {
-            UIInstructions.SetActive(true);
             UISettingsParent.SetActive(false);
             SettingsImage.SetActive(true);
             BackImage.SetActive(false);
             PlayButton.gameObject.SetActive(true);
+            if (FirstMenuDisplay) UIInstructions.SetActive(true);
+            else UIFishBox.SetActive(true);
         }
         else
         {
-            UIInstructions.SetActive(false);
             UISettingsParent.SetActive(true);
             SettingsImage.SetActive(false);
             BackImage.SetActive(true);
             PlayButton.gameObject.SetActive(false);
+
+            if(!FirstMenuDisplay) UIFishBox.SetActive(false);
+            else UIInstructions.SetActive(false);
 
             if (IsSoundOn)
             {
