@@ -23,7 +23,11 @@ public enum BillyColors
     LightBlue,
     DarkRed,
     DarkGrey,
-    DarkBrown
+    DarkBrown,
+    LightRed,
+    Purple,
+    DarkGreen,
+    Peach
 }    
 
 public enum WObjState
@@ -95,23 +99,23 @@ public class WaterObject : MonoBehaviour
             switch (ObjType)
             {
                 case WaterObjectType.Angelfish:
-                    return 100;
+                    return 200;
                 case WaterObjectType.Boot:
-                    return 100;
+                    return -500;
                 case WaterObjectType.Eel:
                     return 100;
                 case WaterObjectType.Jellyfish:
-                    return 100;
+                    return 300;
                 case WaterObjectType.Puffer:
-                    return 100;
+                    return 400;
                 case WaterObjectType.Shark:
-                    return 100;
+                    return 500;
                 case WaterObjectType.Swordfish:
-                    return 100;
+                    return 500;
                 case WaterObjectType.Tire:
-                    return 100;
+                    return -1000;
                 case WaterObjectType.Trout:
-                    return 100;
+                    return 400;
                 default:
                     return 0;
             }
@@ -386,6 +390,14 @@ public class WaterObject : MonoBehaviour
                 return ToColor(116, 116, 116);
             case BillyColors.DarkBrown:
                 return ToColor(96, 83, 64);
+            case BillyColors.LightRed:
+                return ToColor(255, 64, 16);
+            case BillyColors.Purple:
+                return ToColor(165, 95, 195);
+            case BillyColors.DarkGreen:
+                return ToColor(0, 115, 0);
+            case BillyColors.Peach:
+                return ToColor(156, 109, 109);
             default:
             case BillyColors.BurntOrange:
                 return ToColor(167, 79, 0); //burnt orange
@@ -399,21 +411,24 @@ public class WaterObject : MonoBehaviour
             case WaterObjectType.Angelfish:
                 return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink, 
                     BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
-                    BillyColors.FishYellow);
+                    BillyColors.FishYellow, BillyColors.LightRed, BillyColors.Purple,
+                    BillyColors.DarkGreen, BillyColors.Peach);
 
             case WaterObjectType.Eel:
                 return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
                     BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
-                    BillyColors.FishYellow);
+                    BillyColors.FishYellow, BillyColors.Peach, BillyColors.DarkGreen, 
+                    BillyColors.Purple);
 
             case WaterObjectType.Jellyfish:
                 return ChooseRandomlyBetween(BillyColors.BurntOrange, BillyColors.LightBlue, 
-                    BillyColors.LimeGreen, BillyColors.FishYellow);
+                    BillyColors.LimeGreen, BillyColors.FishYellow, BillyColors.Peach);
 
             case WaterObjectType.Puffer:
                 return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
                     BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
-                    BillyColors.FishYellow);
+                    BillyColors.FishYellow, BillyColors.LightRed, BillyColors.Purple,
+                    BillyColors.DarkGreen, BillyColors.Peach);
 
             case WaterObjectType.Shark:
                 return ChooseRandomlyBetween(BillyColors.DarkBrown, BillyColors.DarkGrey);
@@ -421,12 +436,14 @@ public class WaterObject : MonoBehaviour
             case WaterObjectType.Swordfish:
                 return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
                     BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
-                    BillyColors.FishYellow);
+                    BillyColors.FishYellow, BillyColors.LightRed, BillyColors.Purple,
+                    BillyColors.DarkGreen, BillyColors.Peach);
 
             case WaterObjectType.Trout:
                 return ChooseRandomlyBetween(BillyColors.DarkRed, BillyColors.DarkPink,
                     BillyColors.BurntOrange, BillyColors.LightBlue, BillyColors.LimeGreen,
-                    BillyColors.FishYellow);
+                    BillyColors.FishYellow, BillyColors.LightRed, BillyColors.Purple,
+                    BillyColors.DarkGreen, BillyColors.Peach);
 
             case WaterObjectType.Tire:
                 return ChooseRandomlyBetween(BillyColors.DarkGrey);

@@ -26,13 +26,14 @@ public class GUIManager : MonoBehaviour
     public bool HighScorePulse;
     public bool DepthRecordPulse;
     private bool FirstMenuDisplay = true;
+    private bool MusicPlaying = false;
     private int CurrentDepthDisplay;
     private const float PulseTime = .5f;
     private const float PulseSpeed = .2f;
     private float PulseTimer;
     private float PulseDirection = 1f;
 
-    private const float Volume = 50f;
+    private const float Volume = .2f;
     private const string SoundPrefString = "SoundOn";
     private bool soundCheck;
     private bool isSoundOn;
@@ -61,15 +62,15 @@ public class GUIManager : MonoBehaviour
             {
                 return isSoundOn;
             }
-
         }
-
         set
         {
             if (value)
             {
                 AudioListener.volume = Volume;
                 PlayerPrefs.SetInt(SoundPrefString, 1);
+                gameObject.audio.Play();
+                MusicPlaying = true;
             }
             else
             {
@@ -85,7 +86,12 @@ public class GUIManager : MonoBehaviour
     {
         IsShowingSettings = false;
         soundCheck = false;
-        if (IsSoundOn) AudioListener.volume = Volume;
+        if (IsSoundOn)
+        {
+            AudioListener.volume = Volume;
+            gameObject.audio.Play();
+            MusicPlaying = true;
+        }
         else AudioListener.volume = 0;
     }
 
@@ -165,8 +171,13 @@ public class GUIManager : MonoBehaviour
 
         if (!ToTop)
         { //hide on the way out
-            if(FirstMenuDisplay) UIInstructions.gameObject.SetActive(ToTop);
+            if (FirstMenuDisplay) UIInstructions.gameObject.SetActive(ToTop);
             else UIFishBox.SetActive(ToTop);
+            UIDepth.text = "0m";
+        }
+        else
+        {
+            UIDepth.text = GameSystem.Instance.GameManager.GetFarthestDepth().ToString() + "m";
         }
     }
 

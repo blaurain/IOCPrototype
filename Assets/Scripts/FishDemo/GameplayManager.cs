@@ -19,6 +19,7 @@ public class GameplayManager : MonoBehaviour
     public GameObject ActiveView;
     public BackgroundHandler Background;
     public GUIManager UI;
+    public AudioClip CatchSoundEffect;
     public LevelGenerator LevelGen; //last public member
 
     public static float ScreenBoundWorldX = 30;
@@ -51,11 +52,11 @@ public class GameplayManager : MonoBehaviour
     private int[] FishCaughtCount;
 
     private const float GenerateDistance = 40;
-    private const float GenTimerBaseMax = 1.6f;
+    private const float GenTimerBaseMax = 1.4f;
     private const float GenTimerLowestMax = .5f;
     private const float GenTimerSchoolLowestMax = 4f;
     private const float GenTimerBaseMin = .3f;
-    private const float GenTimerIncrement = .1f;
+    private const float GenTimerIncrement = .15f;
     private const float GenTimerSchoolIncrement = .05f;
     private const float SchoolGenBaseMax = 8f;
     private const float SchoolGenBaseMin = 2f;
@@ -231,7 +232,6 @@ public class GameplayManager : MonoBehaviour
                 float amtToMoveUp = CurrentScrollSpeed * Time.deltaTime;
                 ActiveView.transform.localPosition = new Vector3(
                     0, ActiveView.transform.localPosition.y + amtToMoveUp, 0);
-                Background.MoveCameraUp(amtToMoveUp);
 
                 UpdateReel();
 
@@ -239,6 +239,10 @@ public class GameplayManager : MonoBehaviour
                 { //at top
                     ActiveView.transform.localPosition = new Vector3(0, 0, 0);
                     ReelDone();
+                }
+                else
+                {
+                    Background.MoveCameraUp(amtToMoveUp);
                 }
                 break;
 
@@ -459,6 +463,7 @@ public class GameplayManager : MonoBehaviour
             UI.HideBoostFill();
         }
 
+        audio.PlayOneShot(CatchSoundEffect);
     }
 
     private void UpdateCast()
@@ -622,8 +627,6 @@ public class GameplayManager : MonoBehaviour
             UI.SetRecords(HighScore.ToString(), DepthRecord.ToString());
         }
     }
-
-
 
     private void SetScoreUI()
     {
@@ -854,6 +857,8 @@ public class GameplayManager : MonoBehaviour
         PlayerScore += score;
         SetScoreUI();
     }
+
+    public int GetFarthestDepth() { return FarthestDepth; }
 
     private WaterObjectType GetRandomType(bool SchoolOnly)
     {

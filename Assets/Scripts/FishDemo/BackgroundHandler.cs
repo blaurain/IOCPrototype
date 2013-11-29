@@ -275,6 +275,13 @@ public class BackgroundHandler : MonoBehaviour
 
     public void MoveCameraUp(float mainMovement)
     {
+        //rotate back up
+        if (CameraGO.transform.localPosition.y > StartCameraY)
+            CameraGO.transform.localPosition = new Vector3(
+            CameraGO.transform.localPosition.x,
+            MaxCameraY,
+            CameraGO.transform.localPosition.z);
+        
         CameraGO.transform.localPosition = new Vector3(
             CameraGO.transform.localPosition.x,
             CameraGO.transform.localPosition.y + (mainMovement * paralaxMultiplier),
